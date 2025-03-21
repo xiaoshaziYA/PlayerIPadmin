@@ -51,7 +51,7 @@ public class PlayerIPadminAPI {
      * @return 返回地理位置信息，如果失败则返回"未知"。
      */
     private String getLocationInfo(String ip) {
-        String apiUrl = "https://www.ip.cn/api/index?ip=" + ip + "&type=1";
+        String apiUrl = "http://ip-api.com/json/" + ip + "?lang=zh-CN"; 
         try {
             URL url = new URL(apiUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -64,11 +64,16 @@ public class PlayerIPadminAPI {
             }
             in.close();
             JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
-            if (jsonResponse.get("code").getAsInt() == 0) {
-                return jsonResponse.get("address").getAsString();
+            if (jsonResponse.get("status").getAsString().equals("success")) {
+                String country = jsonResponse.get("country").getAsString();
+                String regionName = jsonResponse.get("regionName").getAsString();
+                String city = jsonResponse.get("city").getAsString();
+                return country + ", " + regionName + ", " + city;
+            } else {
+                plugin.getLogger().warning("[PlayerIPadmin] IP API 请求失败，错误信息: " + jsonResponse.get("message").getAsString());
             }
         } catch (Exception e) {
-            Bukkit.getLogger().warning("[PlayerIPadmin] Failed to fetch location for IP: " + ip + " - " + e.getMessage());
+            plugin.getLogger().warning("[PlayerIPadmin] Failed to fetch location for IP: " + ip + " - " + e.getMessage());
         }
         return "未知";
     }
